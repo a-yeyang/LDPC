@@ -9,7 +9,7 @@ function ldpc_comparison_simulation()
     
     %% 可调参数设置
     % 信噪比范围 (dB)
-    SNR_dB_values = [ 0, 1, 2, 3, 4, 5, 6, 7, 8,9,10,11,12];
+    SNR_dB_values = [ 0, 1, 2, 3, 4, 5, 6, 7, 8,9,10,11,12,13,14,15];
     
     % 普通LDPC参数
     LDPC_BLK_SIZE = 256;           % 块大小
@@ -40,7 +40,7 @@ function ldpc_comparison_simulation()
     
     %% 运行普通LDPC仿真
     fprintf('\n=== 开始普通LDPC仿真 ===\n');
-    [ldpc_ebno_values, ldpc_ber_results] = run_regular_ldpc_simulation(...
+    [ldpc_snr_values, ldpc_ber_results] = run_regular_ldpc_simulation(...
         LDPC_BLK_SIZE, LDPC_CODE_RATE, LDPC_NUM_ITER, SNR_dB_values);
     
     %% 运行空间耦合LDPC仿真
@@ -51,19 +51,19 @@ function ldpc_comparison_simulation()
     
     %% 统一绘图
     fprintf('\n=== 绘制对比图 ===\n');
-    plot_comparison_results(ldpc_ebno_values, ldpc_ber_results, ...
+    plot_comparison_results(ldpc_snr_values, ldpc_ber_results, ...
                            sc_snr_values, sc_ber_results, ...
                            LDPC_CODE_RATE, FONT_SIZE, LINE_WIDTH, MARKER_SIZE);
     
     %% 保存结果
-    save_comparison_results(ldpc_ebno_values, ldpc_ber_results, ...
+    save_comparison_results(ldpc_snr_values, ldpc_ber_results, ...
                            sc_snr_values, sc_ber_results, LDPC_CODE_RATE);
     
     fprintf('\n仿真完成！\n');
 end
 
 %% 普通LDPC仿真函数
-function [ebno_values, ber_results] = run_regular_ldpc_simulation(blkSize, codeRate, numIter, snr_values)
+function [snr_values, ber_results] = run_regular_ldpc_simulation(blkSize, codeRate, numIter, snr_values)
     % 星座大小
     M = 4;
     
@@ -71,23 +71,15 @@ function [ebno_values, ber_results] = run_regular_ldpc_simulation(blkSize, codeR
     LDPC = ldpcGet(blkSize, codeRate);
     
     % 初始化结果数组
-    ebno_values = zeros(size(snr_values));
     ber_results = zeros(size(snr_values));
     
     % 对每个信噪比值进行仿真
     parfor snr_idx = 1:length(snr_values)
         snr_dB = snr_values(snr_idx);
         
-        % 转换为Eb/N0
-        ebno = snr_dB - 10*log10(log2(M)) - 10*log10(str2num(codeRate));
-        ebno_values(snr_idx) = ebno;
-        
-        % 转换为SNR用于调制
-        snr_linear = 10^(snr_dB/10);
-        
         numErr = 0;
         
-        fprintf('普通LDPC: 仿真 SNR = %.1f dB (Eb/N0 = %.1f dB)...\n', snr_dB, ebno);
+        fprintf('普通LDPC: 仿真 SNR = %.1f dB...\n', snr_dB);
         
         % 仿真循环
         for i = 1:numIter
@@ -215,7 +207,7 @@ function [snr_values, ber_results] = run_spatial_coupling_ldpc_simulation(...
 end
 
 %% 对比绘图函数
-function plot_comparison_results(ldpc_ebno, ldpc_ber, sc_snr, sc_ber, code_rate, font_size, line_width, marker_size)
+function plot_comparison_results(ldpc_snr, ldpc_ber, sc_snr, sc_ber, code_rate, font_size, line_width, marker_size)
     % 创建图形窗口
     figure('Position', [100, 100, 1000, 700]);
     
@@ -227,7 +219,7 @@ function plot_comparison_results(ldpc_ebno, ldpc_ber, sc_snr, sc_ber, code_rate,
     sc_ber_plot(sc_ber == 0) = 1e-7;
     
     % 绘制普通LDPC结果
-    semilogy(ldpc_ebno, ldpc_ber_plot, 'bo-', 'LineWidth', line_width, 'MarkerSize', marker_size, ...
+    semilogy(ldpc_snr, ldpc_ber_plot, 'bo-', 'LineWidth', line_width, 'MarkerSize', marker_size, ...
              'DisplayName', sprintf('普通LDPC (码率 %s)', code_rate));
     hold on;
     
@@ -246,7 +238,7 @@ function plot_comparison_results(ldpc_ebno, ldpc_ber, sc_snr, sc_ber, code_rate,
     legend('Location', 'best', 'FontSize', font_size, 'FontWeight', 'bold');
     
     % 设置坐标轴
-    xlim([min([ldpc_ebno, sc_snr])-0.5, max([ldpc_ebno, sc_snr])+0.5]);
+    xlim([min([ldpc_snr, sc_snr])-0.5, max([ldpc_snr, sc_snr])+0.5]);
     ylim([1e-8, 1]);
     
     % 设置坐标轴字体
@@ -259,7 +251,7 @@ function plot_comparison_results(ldpc_ebno, ldpc_ber, sc_snr, sc_ber, code_rate,
 end
 
 %% 保存结果函数
-function save_comparison_results(ldpc_ebno, ldpc_ber, sc_snr, sc_ber, code_rate)
+function save_comparison_results(ldpc_snr, ldpc_ber, sc_snr, sc_ber, code_rate)
     % 保存到文本文件
     filename = 'ldpc_comparison_results.txt';
     fid = fopen(filename, 'w');
@@ -273,9 +265,9 @@ function save_comparison_results(ldpc_ebno, ldpc_ber, sc_snr, sc_ber, code_rate)
     fprintf(fid, '==========================================\n\n');
     
     fprintf(fid, '普通LDPC结果:\n');
-    fprintf(fid, 'Eb/N0 (dB)\tBER\n');
-    for i = 1:length(ldpc_ebno)
-        fprintf(fid, '%.2f\t\t%.2e\n', ldpc_ebno(i), ldpc_ber(i));
+    fprintf(fid, 'SNR (dB)\tBER\n');
+    for i = 1:length(ldpc_snr)
+        fprintf(fid, '%.2f\t\t%.2e\n', ldpc_snr(i), ldpc_ber(i));
     end
     
     fprintf(fid, '\n空间耦合LDPC结果:\n');
