@@ -11,14 +11,14 @@ function spatial_coupling_ldpc_awgn_simulation()
     k_LDPC_reg_ensemble = 10;
     l_LDPC_reg_ensemble = 5;    % k/l = q, 必须是整数
     
-    MAX_BP_ITER = 200;
+    MAX_BP_ITER = 100;
     % 对于AWGN信道，收敛检查可以简化或移除，通常迭代固定次数
     
     SIMULATION_NUM = 20; % 为了快速演示，设置一个较小值。实际仿真建议设为100或更高。
     
     % ======================== MODIFICATION START ========================
     % 修改: 将仿真参数从擦除概率eps改为信噪比Es/N0 (dB)
-    EsN0_dB_vals = [0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0];
+    EsN0_dB_vals = [0,2,4,6,8,10,12];
     % ========================= MODIFICATION END =========================
     
     fprintf('开始空间耦合LDPC在AWGN信道下的仿真...\n');
