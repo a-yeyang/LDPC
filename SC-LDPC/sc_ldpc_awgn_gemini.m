@@ -7,16 +7,16 @@
 function spatial_coupling_ldpc_awgn_simulation()
     % 参数定义
     m_PROTOGRAPH = 100;
-    L_SPATIALCOUPLING = 50;
-    k_LDPC_reg_ensemble = 10;
-    l_LDPC_reg_ensemble = 5;    % k/l = q, 必须是整数
+    L_SPATIALCOUPLING = 100;
+    k_LDPC_reg_ensemble = 12;
+    l_LDPC_reg_ensemble = 2;    % k/l = q, 必须是整数
     
     MAX_BP_ITER = 50;
     MAX_BP_UNCHANGED_ITER = 10;
-    SIMULATION_NUM = 5; % 为获得平滑曲线，建议增加此值
+    SIMULATION_NUM = 2; % 为获得平滑曲线，建议增加此值
     
     % AWGN信道仿真参数 - 信噪比 (dB)
-    SNR_dB_vals = [-1,-0.75,-0.5,-0.25,0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.5,3];
+    SNR_dB_vals = [-1,-0.5,0,0.5,1,1.5,2,2.5,3,4, 5,6,7,8];
     
     fprintf('开始空间耦合LDPC在AWGN信道下的仿真...\n');
     
@@ -71,10 +71,10 @@ function spatial_coupling_ldpc_awgn_simulation()
             tx_signal = ones(varNum, 1);
             
             % AWGN信道：直接添加高斯噪声
-            % y = awgn(tx_signal, SNR_dB, 'measured'); % 需要Communications Toolbox
+             y = awgn(tx_signal, SNR_dB, 'measured'); % 需要Communications Toolbox
             % 手动实现 AWGN，无需工具箱
-            noise = sqrt(noiseVar) * randn(varNum, 1);
-            y = tx_signal + noise;
+            % noise = sqrt(noiseVar) * randn(varNum, 1);
+            % y = tx_signal + noise;
 
             % 计算初始LLR
             Lch = 2 * y / noiseVar;

@@ -18,7 +18,8 @@ codeRate = '5/6';
 LDPC = ldpcGet(blkSize, codeRate);
 
 % Simulation parameters
-ebno_values = [0, 2, 4, 6,8,10,12,14];  % 信噪比数值
+% ebno_values = [0, 2, 4, 6,8,10,12,14];  % 信噪比数值
+ebno_values=[-1,-0.5,0,0.5,1,1.5,2,2.5,3,4, 5,6,7,8];
 numIter = 1e2;  % 仿真迭代次数
 ber_results = zeros(size(ebno_values));  % 存储误码率结果
 
